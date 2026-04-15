@@ -9,34 +9,58 @@ import {
   CartesianGrid,
 } from "recharts";
 
+// 🔹 Tipos
+type KPIs = {
+  cnt_facturas: number;
+  transacciones: number;
+  total_neto: number;
+};
+
+type Serie = {
+  fecha: string;
+  total_neto: number;
+};
+
 export default function Dashboard() {
-  const [data, setData] = useState([]);
-  const [kpis, setKpis] = useState(null);
+  const [data, setData] = useState<Serie[]>([]);
+  const [kpis, setKpis] = useState<KPIs | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/ventas?dias=7&modo=dashboard")
       .then((res) => res.json())
-      .then((data) => {
-        setKpis(data.kpis);
-        setData(data.series);
+      .then((resData: { kpis: KPIs; series: Serie[] }) => {
+        setKpis(resData.kpis);
+        setData(resData.series);
+      })
+      .catch((error) => {
+        console.error("Error cargando datos:", error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
   return (
-    <main style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
+    <>
       <h1>Dashboard de Ventas</h1>
+
+      {/* Loading */}
+      {loading && <p>Cargando datos...</p>}
 
       {/* KPIs */}
       {kpis && (
-        <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+        <div style={kpiContainer}>
           <div style={card}>
             <p>Facturas</p>
             <h2>{kpis.cnt_facturas}</h2>
           </div>
+
           <div style={card}>
             <p>Transacciones</p>
             <h2>{kpis.transacciones}</h2>
           </div>
+
           <div style={card}>
             <p>Total Neto</p>
             <h2>{kpis.total_neto}</h2>
@@ -45,18 +69,27 @@ export default function Dashboard() {
       )}
 
       {/* Gráfico */}
-      <div style={{ marginTop: "30px" }}>
-        <LineChart width={500} height={300} data={data}>
-          <CartesianGrid />
-          <XAxis dataKey="fecha" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="total_neto" />
-        </LineChart>
-      </div>
-    </main>
+      {!loading && (
+        <div style={{ marginTop: "30px" }}>
+          <LineChart width={500} height={300} data={data}>
+            <CartesianGrid />
+            <XAxis dataKey="fecha" />
+            <YAxis />
+            <Tooltip />
+            <Line type="monotone" dataKey="total_neto" />
+          </LineChart>
+        </div>
+      )}
+    </>
   );
 }
+
+// 🎨 Estilos tipados correctamente
+const kpiContainer: React.CSSProperties = {
+  display: "flex",
+  gap: "10px",
+  marginTop: "20px",
+};
 
 const card: React.CSSProperties = {
   flex: 1,
