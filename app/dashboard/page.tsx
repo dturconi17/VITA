@@ -58,9 +58,9 @@ export default function Dashboard() {
   );
 }
 
-const card = {
+const card: React.CSSProperties = {
   flex: 1,
-  padding: "10px",
+  padding: "15px",
   border: "1px solid #ccc",
   borderRadius: "10px",
   textAlign: "center",
