@@ -55,6 +55,9 @@ export async function GET(req) {
 
   } catch (error) {
     console.error(error);
-    return Response.json({ error: "Error" }, { status: 500 });
+    return Response.json(
+    { error: error.message },
+    { status: 500 }
+                        );
   }
 }
