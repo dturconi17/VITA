@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/context/UserContext";
 
@@ -207,22 +208,22 @@ export function SidebarMenu() {
 
 /* 🎨 ESTILOS */
 
-const container = {
+const container : CSSProperties = {
   display: "flex",
   flexDirection: "column",
   height: "100%",
 };
 
-const menuWrapper = {
+const menuWrapper : CSSProperties = {
   flex: 1,
   padding: "10px",
 };
 
-const sectionBox = {
+const sectionBox : CSSProperties = {
   marginBottom: "20px",
 };
 
-const sectionHeader = {
+const sectionHeader : CSSProperties = {
   padding: "10px 12px",
   fontSize: "15px",
   fontWeight: "bold",
@@ -233,19 +234,19 @@ const sectionHeader = {
   justifyContent: "space-between",
 };
 
-const activeSection = {
+const activeSection : CSSProperties = {
   background: "#1f2937",
   color: "white",
 };
 
-const itemsContainer = {
+const itemsContainer : CSSProperties = {
   marginTop: "10px",
   display: "flex",
   flexDirection: "column",
   gap: "8px",
 };
 
-const itemStyle = {
+const itemStyle : CSSProperties = {
   padding: "10px 14px",
   borderRadius: "6px",
   fontSize: "16px",
@@ -253,25 +254,25 @@ const itemStyle = {
   textDecoration: "none",
 };
 
-const activeItem = {
+const activeItem : CSSProperties = {
   background: "#374151",
   color: "white",
 };
 
-const userContainer = {
+const userContainer : CSSProperties = {
   borderTop: "1px solid #1f2937",
   padding: "12px",
   position: "relative",
 };
 
-const userBox = {
+const userBox : CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: "10px",
   cursor: "pointer",
 };
 
-const avatar = {
+const avatar : CSSProperties = {
   width: "40px",
   height: "40px",
   borderRadius: "50%",
@@ -283,29 +284,29 @@ const avatar = {
   fontWeight: "bold",
 };
 
-const avatarImg = {
+const avatarImg : CSSProperties = {
   width: "100%",
   height: "100%",
   borderRadius: "50%",
 };
 
-const userName = {
+const userName : CSSProperties = {
   fontSize: "14px",
   fontWeight: "bold",
   color: "white",
 };
 
-const userEmail = {
+const userEmail : CSSProperties = {
   fontSize: "12px",
   color: "#9ca3af",
 };
 
-const userRoleStyle = {
+const userRoleStyle : CSSProperties = {
   fontSize: "11px",
   color: "#6b7280",
 };
 
-const dropdown = {
+const dropdown : CSSProperties = {
   position: "absolute",
   bottom: "60px",
   left: "10px",
@@ -315,7 +316,7 @@ const dropdown = {
   overflow: "hidden",
 };
 
-const dropdownItem = {
+const dropdownItem : CSSProperties = {
   width: "100%",
   padding: "10px",
   background: "transparent",
@@ -325,7 +326,7 @@ const dropdownItem = {
   cursor: "pointer",
 };
 
-const divider = {
+const divider : CSSProperties = {
   height: "1px",
   background: "#1f2937",
 };

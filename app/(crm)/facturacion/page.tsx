@@ -500,11 +500,15 @@ return (
             />
 
             <Tooltip
-              formatter={(value: number) => [
-                formatearMoneda(value),
-                "Facturación",
-              ]}
-            />
+  formatter={(value) => {
+    const monto = Number(value ?? 0);
+
+    return [
+      formatearMoneda(monto),
+      "Facturación",
+    ];
+  }}
+/>
 
 
 

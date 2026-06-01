@@ -207,7 +207,11 @@ const dataStickiness = [...stickinessData]
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="mes" />
             <YAxis domain={[0, 100]} />
-            <Tooltip formatter={(v: number) => `${v}%`} />
+           <Tooltip
+              formatter={(value) =>
+                value !== undefined ? `${value}%` : ""
+              }
+            />
 
             <Line
               type="monotone"
@@ -251,7 +255,11 @@ const dataStickiness = [...stickinessData]
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="mes" />
                 <YAxis />
-                <Tooltip formatter={(v: number) => formatNumber(v)} />
+                <Tooltip
+                  formatter={(value) =>
+                    value !== undefined ? `${value}%` : ""
+                  }
+                />
                 <Bar dataKey="clientes" fill="#0088FE" />
               </BarChart>
             </ResponsiveContainer>
@@ -331,11 +339,13 @@ const card = {
   boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
 };
 
-const table = {
+import type { CSSProperties } from "react";
+
+const table: CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",
-  background: "white",
-  marginTop: "30px",
+  background: "#fff",
+  marginTop: "20px",
 };
 
 const thead = {

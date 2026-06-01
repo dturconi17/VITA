@@ -1,5 +1,8 @@
 "use client";
+
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
+
 import {
   PieChart, Pie, Cell, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -18,7 +21,10 @@ export default function VentasRegionPage() {
 
     fetch(`/api/ventas?modo=region&meses=${query}`)
       .then((res) => res.json())
-      .then((data) => setData(data))
+      .then((data) => {
+        console.log("REGION:", data);
+        setData(data);
+      })
       .catch((err) => console.error(err));
 
   }, [meses]);
@@ -65,8 +71,6 @@ export default function VentasRegionPage() {
   const sorted = [...data].sort((a, b) => b.tam_2526 - a.tam_2526);
   const top5 = sorted.slice(0, 5);
   const others = sorted.slice(5);
-
-  const otrosTotal = others.reduce((acc, r) => acc + r.tam_2526, 0);
 
   const COLORS = [
     "#0088FE", "#00C49F", "#FFBB28",
@@ -208,7 +212,7 @@ export default function VentasRegionPage() {
               innerRadius={60}
               outerRadius={150}
               labelLine={false}   // 👈 ESTO SACA LAS LÍNEAS
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+              label={({ cx, cy, midAngle = 0, innerRadius = 0, outerRadius = 0, percent = 0 }) => {
                 const RADIAN = Math.PI / 180;
                 const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
 
@@ -240,10 +244,10 @@ export default function VentasRegionPage() {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) =>
-                `${((value / total2324) * 100).toFixed(1)}%`
-              }
-            />
+  formatter={(value) =>
+    `${((Number(value ?? 0) / total2324) * 100).toFixed(1)}%`
+  }
+/>
           </PieChart>
         </div>
 
@@ -258,7 +262,7 @@ export default function VentasRegionPage() {
               innerRadius={60}
               outerRadius={150}
               labelLine={false}   // 👈 ESTO SACA LAS LÍNEAS
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+              label={({ cx, cy, midAngle = 0, innerRadius = 0, outerRadius = 0, percent = 0 }) => {
                 const RADIAN = Math.PI / 180;
                 const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
 
@@ -290,10 +294,10 @@ export default function VentasRegionPage() {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) =>
-                `${((value / total2425) * 100).toFixed(1)}%`
-              }
-            />
+  formatter={(value) =>
+    `${((Number(value ?? 0) / total2425) * 100).toFixed(1)}%`
+  }
+/>
           </PieChart>
         </div>
 
@@ -308,7 +312,7 @@ export default function VentasRegionPage() {
               innerRadius={60}
               outerRadius={150}
               labelLine={false}   // 👈 ESTO SACA LAS LÍNEAS
-              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+              label={({ cx, cy, midAngle = 0, innerRadius = 0, outerRadius = 0, percent = 0 }) => {
                 const RADIAN = Math.PI / 180;
                 const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
 
@@ -340,8 +344,8 @@ export default function VentasRegionPage() {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) =>
-                `${((value / total2526) * 100).toFixed(1)}%`
+              formatter={(value) =>
+                `${((Number(value ?? 0) / total2526) * 100).toFixed(1)}%`
               }
             />
           </PieChart>
@@ -361,7 +365,7 @@ export default function VentasRegionPage() {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="region" />
           <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip formatter={(v: number) => money(v)} />
+          <Tooltip formatter={(v) => money(Number(v ?? 0))} />
           <Bar dataKey="ventas" fill="#0088FE" />
         </BarChart>
       </ResponsiveContainer>
@@ -395,7 +399,7 @@ export default function VentasRegionPage() {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="periodo" />
           <YAxis tick={{ fontSize: 12 }}/>
-          <Tooltip formatter={(v: number) => money(v)} />
+          <Tooltip formatter={(v) => money(Number(v ?? 0))} />
           <Line
             type="monotone"
             dataKey="valor"
@@ -492,14 +496,14 @@ export default function VentasRegionPage() {
 
 /* 🎨 ESTILOS */
 
-const gridCharts = {
+const gridCharts : CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(2, 1fr)",
   gap: "20px",
   marginBottom: "40px",
 };
 
-const card = {
+const card : CSSProperties = {
   background: "white",
   padding: "20px",
   borderRadius: "12px",
@@ -507,7 +511,7 @@ const card = {
   textAlign: "center" as const,
 };
 
-const table = {
+const table : CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",
   background: "white",
@@ -516,12 +520,12 @@ const table = {
   boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
 };
 
-const thead = {
+const thead : CSSProperties = {
   background: "#0f172a",
   color: "white",
 };
 
-const th = {
+const th : CSSProperties = {
   padding: "14px",
   fontSize: "16px",
   fontWeight: "bold",
@@ -529,23 +533,23 @@ const th = {
   borderRight: "1px solid #444",
 };
 
-const tdLeft = {
+const tdLeft : CSSProperties = {
   padding: "12px",
   textAlign: "left" as const,
   borderRight: "1px solid #ddd",
 };
 
-const tdRight = {
+const tdRight : CSSProperties = {
   padding: "12px",
   textAlign: "right" as const,
   borderRight: "1px solid #ddd",
 };
 
-const rowStyle = {
+const rowStyle : CSSProperties = {
   borderBottom: "1px solid #e5e7eb",
 };
 
-const rowAlt = {
+const rowAlt : CSSProperties = {
   background: "#f9fafb",
   borderBottom: "1px solid #e5e7eb",
 };

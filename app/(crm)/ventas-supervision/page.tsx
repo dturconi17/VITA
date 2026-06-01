@@ -1,4 +1,6 @@
 "use client";
+
+import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -234,7 +236,7 @@ const dataStickiness = Array.isArray(stickinessData)
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="mes" />
             <YAxis domain={[0, 100]} />
-            <Tooltip formatter={(v: number) => `${v}%`} />
+            <Tooltip formatter={(v) => `${Number(v ?? 0)}%`} />
 
             <Line
               type="monotone"
@@ -278,7 +280,7 @@ const dataStickiness = Array.isArray(stickinessData)
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="mes" />
                 <YAxis />
-                <Tooltip formatter={(v: number) => formatNumber(v)} />
+                <Tooltip formatter={(v) => formatNumber(Number(v ?? 0))} />
                 <Bar dataKey="clientes" fill="#0088FE" />
               </BarChart>
             </ResponsiveContainer>
@@ -345,48 +347,48 @@ const dataStickiness = Array.isArray(stickinessData)
 
 /* ESTILOS */
 
-const grid = {
+const grid : CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(2, 1fr)",
   gap: "20px",
 };
 
-const card = {
+const card : CSSProperties = {
   background: "white",
   padding: "15px",
   borderRadius: "10px",
   boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
 };
 
-const table = {
+const table : CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",
   background: "white",
   marginTop: "30px",
 };
 
-const thead = {
+const thead : CSSProperties = {
   background: "#1f2937",
   color: "white",
 };
 
-const kpiContainer = {
+const kpiContainer : CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
   gap: "15px",
   marginBottom: "20px",
 };
 
-const kpiCard = {
+const kpiCard : CSSProperties = {
   background: "white",
   padding: "15px",
   borderRadius: "10px",
   boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
 };
 
-const th = { padding: "12px" };
-const tdLeft = { padding: "10px", textAlign: "left" as const };
-const tdRight = { padding: "10px", textAlign: "right" as const };
+const th : CSSProperties = { padding: "12px" };
+const tdLeft : CSSProperties = { padding: "10px", textAlign: "left" as const };
+const tdRight : CSSProperties = { padding: "10px", textAlign: "right" as const };
 
-const rowStyle = { borderBottom: "1px solid #ddd" };
-const rowAlt = { background: "#f9f9f9" };
+const rowStyle : CSSProperties = { borderBottom: "1px solid #ddd" };
+const rowAlt : CSSProperties = { background: "#f9f9f9" };
