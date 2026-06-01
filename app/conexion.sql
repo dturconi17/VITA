@@ -1009,4 +1009,4 @@ SELECT
   COUNT(DISTINCT CASE WHEN TAM = 'TAM 2024/2025' THEN id_sale_invoice END) AS transacciones_2024_25,
   COUNT(DISTINCT CASE WHEN TAM = 'TAM 2025/2026' THEN id_sale_invoice END) AS transacciones_2025_26
 FROM sales.v_venta_total
-WHERE estado_factura = 'V' and nombre_cliente = 'ABIGAIL CONTRERAS OLIVERA - FARMACIA  LEANDRO'
+WHERE estado_factura = 'V' and nombre_cliente = 'ABIGAIL CONTRERAS OLIVERA - FARMACIA  LEANDRO'git branch
