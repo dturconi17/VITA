@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -16,4 +20,16 @@ button:hover {
 
 a:hover {
   background-color: #333;
+}
+
+/* RESET */
+ul, ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
 }
