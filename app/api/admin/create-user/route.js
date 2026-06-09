@@ -13,6 +13,11 @@ export async function POST(req) {
       );
     }
 
+    console.log({
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    });
+
     const supabaseAdmin = createClient(supabaseUrl, serviceKey);
 
     const body = await req.json();
