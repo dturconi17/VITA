@@ -13,11 +13,6 @@ export async function POST(req) {
       );
     }
 
-    console.log({
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      anon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    });
-
     const supabaseAdmin = createClient(supabaseUrl, serviceKey);
 
     const body = await req.json();
@@ -25,43 +20,30 @@ export async function POST(req) {
 
     console.log("BODY:", body);
 
-    // 1. Crear usuario en auth
+    // Crear usuario. El trigger crea automáticamente el perfil.
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
+      user_metadata: {
+        full_name,
+        role: role || "vendedor",
+      },
     });
 
     if (error) {
       console.error("AUTH ERROR:", error);
+
       return NextResponse.json(
         { error: error.message },
         { status: 400 }
       );
     }
 
-    const userId = data.user.id;
-
-    // 2. Crear profile
-    await supabaseAdmin
-      .from("profiles")
-      .upsert({
-        id: userId,
-        email,
-        full_name,
-        role: role || "vendedor",
-      });
-
-    if (profileError) {
-      console.error("PROFILE ERROR:", profileError);
-
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      userId: data.user.id,
+    });
 
   } catch (err) {
     console.error("SERVER ERROR:", err);
