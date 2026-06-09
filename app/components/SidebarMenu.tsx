@@ -16,6 +16,7 @@ const menuSections = [
       { href: "/ventas-region", label: "1. Ventas por Región" },
       { href: "/ventas-supervision", label: "2. Ventas por Supervision" },
       { href: "/ventas-vendedor", label: "3. Ventas por Vendedor" },
+      { href: "/ticket-promedio", label: "4. Reporte de Ventas Promedio" },
 
     ],
   },

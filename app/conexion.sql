@@ -1009,4 +1009,37 @@ SELECT
   COUNT(DISTINCT CASE WHEN TAM = 'TAM 2024/2025' THEN id_sale_invoice END) AS transacciones_2024_25,
   COUNT(DISTINCT CASE WHEN TAM = 'TAM 2025/2026' THEN id_sale_invoice END) AS transacciones_2025_26
 FROM sales.v_venta_total
-WHERE estado_factura = 'V' and nombre_cliente = 'ABIGAIL CONTRERAS OLIVERA - FARMACIA  LEANDRO'git branch
+WHERE estado_factura = 'V' and nombre_cliente like 'ADELA ALVARADO FLORES - FARMACIA %'
+
+
+select 
+  SUM(CASE WHEN Año = 2026 THEN total_venta ELSE 0 END) AS facturacion_2026,
+  SUM(CASE WHEN Año = 2025 THEN total_venta ELSE 0 END) AS facturacion_2025,
+  SUM(CASE WHEN Año = 2024 THEN total_venta ELSE 0 END) AS facturacion_2024,
+  COUNT(DISTINCT CASE WHEN Año = 2026 THEN id_sale_invoice END) AS transacciones_2026,
+  COUNT(DISTINCT CASE WHEN Año = 2025 THEN id_sale_invoice END) AS transacciones_2025,
+  COUNT(DISTINCT CASE WHEN Año = 2024 THEN id_sale_invoice END) AS transacciones_2024
+FROM sales.v_venta_total
+WHERE estado_factura = 'V'
+and nombre_cliente like 'ADELA ALVARADO FLORES - FARMACIA %'
+and nombre_vendedor = 'ADOLFO CONDORI MENDEZ'
+
+
+select *
+FROM sales.v_venta_total
+WHERE estado_factura = 'V' and nombre_cliente like 'ADELA ALVARADO FLORES - FARMACIA %' and año = 2025
+
+
+SELECT
+    YEAR(fecha_factura) AS anio,
+    nombre_cliente,
+    nombre_vendedor,
+    ciudad_cliente,
+    SUM(total_venta) AS facturacion
+FROM sales.v_venta_total
+WHERE estado_factura = 'V'
+GROUP BY
+    YEAR(fecha_factura),
+    nombre_cliente,
+    nombre_vendedor,
+    ciudad_cliente

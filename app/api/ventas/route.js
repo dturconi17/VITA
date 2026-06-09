@@ -328,8 +328,26 @@ export async function GET(req) {
 
 
 
+if (modo === "segmentacion_clientes") {
+      const result = await pool.request().query(`
+SELECT
+YEAR(fecha_factura) AS anio,
+nombre_cliente,
+nombre_vendedor,
+ciudad_cliente,
+SUM(total_venta) AS facturacion,
+COUNT(DISTINCT id_sale_invoice) AS transacciones
+FROM sales.v_venta_total
+WHERE estado_factura='V'
+GROUP BY
+YEAR(fecha_factura),
+nombre_cliente,
+nombre_vendedor,
+ciudad_cliente
+    `);
 
-
+      return Response.json(result.recordset);
+    }
 
 
 
