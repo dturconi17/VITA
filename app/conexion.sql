@@ -1029,6 +1029,7 @@ select *
 FROM sales.v_venta_total
 WHERE estado_factura = 'V' and nombre_cliente like 'ADELA ALVARADO FLORES - FARMACIA %' and año = 2025
 
+'
 
 SELECT
     YEAR(fecha_factura) AS anio,
@@ -1036,6 +1037,7 @@ SELECT
     nombre_vendedor,
     ciudad_cliente,
     SUM(total_venta) AS facturacion
+INTO sales.crm_ticket_promedio
 FROM sales.v_venta_total
 WHERE estado_factura = 'V'
 GROUP BY
@@ -1043,3 +1045,49 @@ GROUP BY
     nombre_cliente,
     nombre_vendedor,
     ciudad_cliente
+
+select * from sales.crm_ticket_promedio
+
+
+  SELECT 
+    (SELECT DISTINCT nombre_cliente FROM sales.v_venta_total WHERE estado_factura = 'V' ORDER BY nombre_cliente FOR JSON PATH) AS clientes,
+    (SELECT DISTINCT nombre_vendedor FROM sales.v_venta_total WHERE estado_factura = 'V' ORDER BY nombre_vendedor FOR JSON PATH) AS vendedores,
+    (SELECT DISTINCT ciudad_cliente FROM sales.v_venta_total WHERE estado_factura = 'V' ORDER BY ciudad_cliente FOR JSON PATH) AS ciudades,
+    (SELECT DISTINCT YEAR(fecha_factura) AS anio FROM sales.v_venta_total WHERE estado_factura = 'V' ORDER BY anio DESC FOR JSON PATH) AS anios
+  FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+
+
+  SELECT top 100 *
+    FROM sales.v_venta_total v
+WHERE v.estado_factura='V'
+
+
+      AND UPPER(LTRIM(RTRIM(v.nombre_vendedor)))
+      COLLATE Latin1_General_CI_AI = 'ABEL DIMAS ALI LIPA'
+    
+    AND YEAR(v.fecha_factura) = 2026
+  
+      AND UPPER(LTRIM(RTRIM(v.ciudad_cliente)))
+      COLLATE Latin1_General_CI_AI =
+      'EL ALTO'
+
+
+SELECT
+    v.nombre_cliente,
+   id_sale_invoice, ciudad_cliente, fecha_factura, total_venta
+FROM sales.v_venta_total v
+WHERE v.estado_factura='V'
+
+      AND UPPER(LTRIM(RTRIM(v.nombre_vendedor)))
+      COLLATE Latin1_General_CI_AI = 'ABEL DIMAS ALI LIPA'
+    
+    AND YEAR(v.fecha_factura) = 2026
+  
+      AND UPPER(LTRIM(RTRIM(v.ciudad_cliente)))
+      COLLATE Latin1_General_CI_AI =
+      'EL ALTO'
+    
+GROUP BY
+v.nombre_cliente
+ORDER BY
+facturacion DESC
