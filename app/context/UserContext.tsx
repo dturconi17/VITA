@@ -14,7 +14,6 @@ type UserContextType = {
   profile: any;
   role: string | null;
   loading: boolean;
-  refreshProfile: () => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType>({
@@ -22,7 +21,6 @@ const UserContext = createContext<UserContextType>({
   profile: null,
   role: null,
   loading: true,
-  refreshProfile: async () => {},
 });
 
 export function UserProvider({
@@ -35,54 +33,53 @@ export function UserProvider({
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function refreshProfile() {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+  useEffect(() => {
+    let mounted = true;
 
-      const currentUser = session?.user;
+    const loadUser = async (sessionUser?: any) => {
+      if (!mounted) return;
 
-      setUser(currentUser);
-
-      if (!currentUser) {
+      if (!sessionUser) {
+        setUser(null);
         setProfile(null);
         setRole(null);
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
+      setUser(sessionUser);
+
+      const { data } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", currentUser.id)
+        .eq("id", sessionUser.id)
         .single();
 
-      if (error) {
-        console.error(error);
-      }
+      if (!mounted) return;
 
       setProfile(data);
-      setRole(data?.role || null);
-
-    } catch (error) {
-      console.error(error);
-    } finally {
+      setRole(data?.role ?? null);
       setLoading(false);
-    }
-  }
+    };
 
-  useEffect(() => {
-    refreshProfile();
+    // 🔥 INIT (session inicial)
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      await loadUser(data.session?.user ?? null);
+    };
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      refreshProfile();
-    });
+    init();
+
+    // 🔥 LISTENER (cambios de auth)
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        loadUser(session?.user ?? null);
+      }
+    );
 
     return () => {
-      subscription.unsubscribe();
+      mounted = false;
+      listener.subscription.unsubscribe();
     };
   }, []);
 
@@ -93,7 +90,6 @@ export function UserProvider({
         profile,
         role,
         loading,
-        refreshProfile,
       }}
     >
       {children}
