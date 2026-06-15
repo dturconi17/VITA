@@ -9,30 +9,35 @@ export default function Login() {
   const [password, setPassword] = useState("")
 
   // 👇 ESTE ES EL LUGAR CORRECTO
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession()
-
-      if (data.session) {
-        navigate("/cobertura-historica")
+useEffect(() => {
+  const { data: listener } = supabase.auth.onAuthStateChange(
+    (event, session) => {
+      if (session) {
+        navigate("/cobertura-historica", { replace: true })
       }
     }
+  )
 
-    checkSession()
-  }, [navigate])
-
-  const handleLogin = async (e) => {
-    e.preventDefault()
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (!error) {
-      navigate("/cobertura-historica")
-    }
+  return () => {
+    listener.subscription.unsubscribe()
   }
+}, [navigate])
+
+const handleLogin = async (e) => {
+  e.preventDefault()
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) {
+    console.log(error.message)
+    return
+  }
+
+  // ❌ NO navigate acá
+}
 
   return (
     <form onSubmit={handleLogin}>
