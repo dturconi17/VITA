@@ -17,6 +17,7 @@ const menuSections = [
       { href: "/ventas-supervision", label: "2. Ventas por Supervision" },
       { href: "/ventas-vendedor", label: "3. Ventas por Vendedor" },
       { href: "/ticket-promedio", label: "4. Reporte de Ventas Promedio" },
+      { href: "/reporte-retencion", label: "5. Dinamica de Clientes" },
 
     ],
   },
@@ -91,10 +92,28 @@ export function SidebarMenu() {
     }));
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+const handleLogout = async () => {
+  console.log("1 - Inicio logout");
+
+  try {
+    console.log("2 - Llamando signOut");
+
+    const { error } = await supabase.auth.signOut();
+
+    console.log("3 - Respuesta signOut", error);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    console.log("4 - Navegando");
+
     router.replace("/login");
-  };
+  } catch (err) {
+    console.error("5 - Error", err);
+  }
+};
 
   const iniciales = profile?.full_name
     ? profile.full_name
@@ -197,9 +216,15 @@ export function SidebarMenu() {
 
             <div style={divider} />
 
-            <button onClick={handleLogout} style={{ ...dropdownItem, color: "red" }}>
-              🚪 Cerrar sesión
-            </button>
+            <button
+  onClick={() => {
+    console.log("CLICK BOTÓN");
+    handleLogout();
+  }}
+  style={{ ...dropdownItem, color: "red" }}
+>
+  🚪 Cerrar sesión
+</button>
           </div>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
+import FiltroCanal from "@/app/components/filtros/FiltroCanal";
 
 import {
   PieChart, Pie, Cell, Tooltip,
@@ -14,21 +15,23 @@ export default function VentasRegionPage() {
   // ✅ PRIMERO estados
   const [data, setData] = useState<any[]>([]);
   const [meses, setMeses] = useState<number[]>([4,5,6,7,8,9,10,11]);
+  const [canal, setCanal] = useState("todo");
 
   // ✅ FETCH CORRECTO
-  useEffect(() => {
-    const query = meses.join(",");
+useEffect(() => {
+  const query = meses.join(",");
 
-    fetch(`/api/ventas?modo=region&meses=${query}`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("REGION:", data);
-        setData(data);
-      })
-      .catch((err) => console.error(err));
+  fetch(
+    `/api/ventas?modo=region&meses=${query}&canal=${encodeURIComponent(canal)}`
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("REGION:", data);
+      setData(data);
+    })
+    .catch((err) => console.error(err));
 
-  }, [meses]);
-
+}, [meses, canal]);
   // =========================
   // HELPERS
   // =========================
@@ -181,6 +184,13 @@ export default function VentasRegionPage() {
           <button onClick={() => setMeses([])}>
             Limpiar
           </button>
+        </div>
+        <div>
+          <FiltroCanal
+            value={canal}
+            onChange={setCanal}
+          />
+
         </div>
       </div>
 

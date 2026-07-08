@@ -39,47 +39,80 @@ export function UserProvider({
     const loadUser = async (sessionUser?: any) => {
       if (!mounted) return;
 
-      if (!sessionUser) {
-        setUser(null);
+      try {
+        setLoading(true);
+
+        if (!sessionUser) {
+          setUser(null);
+          setProfile(null);
+          setRole(null);
+          return;
+        }
+
+        setUser(sessionUser);
+
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", sessionUser.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error cargando profile:", error);
+        }
+
+        if (!mounted) return;
+
+        setProfile(data ?? null);
+        setRole(data?.role ?? null);
+      } catch (err) {
+        console.error("UserContext:", err);
+
+        if (!mounted) return;
+
         setProfile(null);
         setRole(null);
-        setLoading(false);
-        return;
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-
-      setUser(sessionUser);
-
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", sessionUser.id)
-        .single();
-
-      if (!mounted) return;
-
-      setProfile(data);
-      setRole(data?.role ?? null);
-      setLoading(false);
     };
 
-    // 🔥 INIT (session inicial)
     const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      await loadUser(data.session?.user ?? null);
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("Error obteniendo sesión:", error);
+        }
+
+        await loadUser(session?.user ?? null);
+      } catch (err) {
+        console.error("Error inicializando sesión:", err);
+
+        if (mounted) {
+          setLoading(false);
+        }
+      }
     };
 
     init();
 
-    // 🔥 LISTENER (cambios de auth)
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        loadUser(session?.user ?? null);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("AUTH:", event);
+
+      loadUser(session?.user ?? null);
+    });
 
     return () => {
       mounted = false;
-      listener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 

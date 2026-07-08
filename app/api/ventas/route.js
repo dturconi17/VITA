@@ -24,6 +24,20 @@ export function buildFiltroVendedor(vendedor) {
   `;
 }
 
+export function buildFiltroCanal(canal) {
+  if (!canal || canal === "todo") return "";
+
+  const limpio = canal
+    .trim()
+    .replace(/'/g, "''")
+    .toUpperCase();
+
+  return `
+    AND UPPER(LTRIM(RTRIM(v.nombre_grupo)))
+    COLLATE Latin1_General_CI_AI = '${limpio}'
+  `;
+}
+
 // =====================================
 // 🚀 API
 // =====================================
@@ -35,6 +49,7 @@ export async function GET(req) {
 
     const supervision = searchParams.get("supervision") || "todo";
     const vendedor = searchParams.get("vendedor") || "todo";
+    const canal = searchParams.get("canal") || "todo";
 
     // 🔥 filtros dinámicos
     const filtroSupervision = await buildFiltroVendedores({
@@ -43,11 +58,13 @@ export async function GET(req) {
     });
 
     const filtroVendedor = buildFiltroVendedor(vendedor);
+    const filtroCanal = buildFiltroCanal(canal);
 
     const filtroFinal = `
-      ${filtroSupervision}
-      ${filtroVendedor}
-    `;
+  ${filtroSupervision}
+  ${filtroVendedor}
+  ${filtroCanal}
+`;
 
     const pool = await getConnection();
 
@@ -375,6 +392,7 @@ ciudad_cliente
         LEFT JOIN sales.v_venta_total v
           ON r.region = v.ciudad_cliente
           AND v.estado_factura = 'V'
+          ${filtroFinal}
         GROUP BY r.region
         ORDER BY r.region
       `); 

@@ -1091,3 +1091,47 @@ GROUP BY
 v.nombre_cliente
 ORDER BY
 facturacion DESC
+
+
+select codigo_cliente, max(nombre_cliente)
+FROM sales.v_venta_total v
+WHERE v.estado_factura='V'
+
+SELECT DISTINCT
+       CONVERT(char(7), fecha_factura, 120) AS periodo
+FROM sales.v_venta_total
+WHERE estado_factura='V'
+ORDER BY periodo;
+
+
+
+-------------------
+select * from sales.crm_aux_dinamica
+drop table sales.crm_aux_dinamica
+
+
+SELECT DISTINCT
+    codigo_cliente,
+    MAX(nombre_cliente) OVER(PARTITION BY codigo_cliente) nombre_cliente,
+    CONVERT(char(7),fecha_factura,120) periodo
+INTO sales.crm_aux_dinamica
+FROM sales.v_venta_total
+WHERE estado_factura='V'
+
+DECLARE @Columnas NVARCHAR(MAX);
+
+SELECT @Columnas =
+STRING_AGG(
+    'MAX(CASE WHEN periodo = ''' + periodo + ''' THEN 1 ELSE 0 END) AS [' + periodo + ']',
+    ','
+)
+FROM (
+    SELECT DISTINCT periodo
+    FROM sales.crm_aux_dinamica
+) t;
+
+select nombre_grupo, count(distinct(codigo_cliente))
+FROM sales.v_venta_total
+WHERE estado_factura='V'
+group by nombre_grupo
+order by nombre_grupo
