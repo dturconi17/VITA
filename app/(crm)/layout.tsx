@@ -1,11 +1,10 @@
 "use client"
 
 import { SidebarMenu } from "@/app/components/SidebarMenu"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { useUser } from "@/context/UserContext"
-import { SidebarProfile } from "@/app/components/SidebarProfile"
-
+import { useUser } from "@/app/context/UserContext"
+import SessionTimeout from "@/app/components/SessionTimeout"
 
 export default function CRMLayout({
   children,
@@ -16,7 +15,6 @@ export default function CRMLayout({
   const pathname = usePathname()
 
   const { user, profile, loading } = useUser()
-  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     if (loading) return
@@ -27,55 +25,80 @@ export default function CRMLayout({
     }
 
     if (pathname === "/completar-perfil") {
-      setChecking(false)
       return
     }
 
     const nombreInvalido =
-      !profile ||
-      !profile.full_name ||
-      profile.full_name === profile.email
+      profile &&
+      (
+        !profile.full_name ||
+        profile.full_name === profile.email
+      )
 
     if (nombreInvalido) {
       router.replace("/completar-perfil")
-      return
     }
+  }, [loading, pathname, profile, router, user])
 
-    setChecking(false)
-  }, [user, profile, loading, pathname, router])
-
-  if (loading || checking) {
+  // Mientras se verifica la sesión
+  if (loading || (user && !profile)) {
     return (
       <div style={loadingContainer}>
-        <p style={{ color: "#64748b" }}>Cargando CRM...</p>
+        <p style={{ color: "#64748b" }}>
+          Cargando CRM...
+        </p>
       </div>
     )
   }
 
+  // Esperando el redirect al login
+  if (!user) {
+    return null
+  }
+
+  // Esperando el redirect a completar perfil
+  if (
+    pathname !== "/completar-perfil" &&
+    profile &&
+    (
+      !profile.full_name ||
+      profile.full_name === profile.email
+    )
+  ) {
+    return null
+  }
+
+  console.log({
+    loading,
+    user: !!user,
+    profile,
+  })
+
   return (
-    <div style={container}>
-      {/* SIDEBAR */}
-      <aside style={sidebar}>
-  
-  {/* 🔹 HEADER */}
-  <div style={logoContainer}>
-    <img src="/CRM_VITA.jpg" alt="Logo" style={logo} />
-    <h2 style={title}>CRM de Vita</h2>
-    <p style={subtitle}>Panel de control</p>
-  </div>
+    <>
+      <SessionTimeout /> 
+      <div style={container}>
+        {/* SIDEBAR */}
+        <aside style={sidebar}>
+          {/* HEADER */}
+          <div style={logoContainer}>
+            <img src="/CRM_VITA.jpg" alt="Logo" style={logo} />
+            <h2 style={title}>CRM de Vita</h2>
+            <p style={subtitle}>Panel de control</p>
+          </div>
 
-  {/* 🔹 MENÚ (SCROLLABLE) */}
-  <div style={menuContainer}>
-    <SidebarMenu />
-  </div>
+          {/* MENÚ */}
+          <div style={menuContainer}>
+            <SidebarMenu />
+          </div>
+        </aside>
 
-
-
-</aside>
-
-      {/* CONTENIDO */}
-      <main style={content}>{children}</main>
-    </div>
+        {/* CONTENIDO */}
+        <main style={content}>
+          {children}
+        </main>
+      </div>
+    </>
   )
 }
 
@@ -86,12 +109,6 @@ const container: React.CSSProperties = {
   height: "100vh",
   overflow: "hidden",
   fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
-}
-
-const profileContainer: React.CSSProperties = {
-  padding: "14px",
-  borderTop: "1px solid rgba(255,255,255,0.08)",
-  backgroundColor: "#020617",
 }
 
 /* SIDEBAR */
@@ -105,7 +122,7 @@ const sidebar: React.CSSProperties = {
   flexShrink: 0,
 }
 
-/* HEADER SIDEBAR */
+/* HEADER */
 const logoContainer: React.CSSProperties = {
   padding: "18px 16px",
   textAlign: "center",
@@ -113,10 +130,11 @@ const logoContainer: React.CSSProperties = {
 }
 
 const logo: React.CSSProperties = {
-  height: "56px",
-  width: "56px",
-  objectFit: "cover",
-  borderRadius: "12px",
+  maxWidth: "180px",
+  maxHeight: "70px",
+  width: "auto",
+  height: "auto",
+  objectFit: "contain",
   marginBottom: "10px",
 }
 

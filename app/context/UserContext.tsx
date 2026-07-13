@@ -5,8 +5,8 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
 } from "react";
-
 import { supabase } from "@/lib/supabase";
 
 type UserContextType = {
@@ -14,6 +14,7 @@ type UserContextType = {
   profile: any;
   role: string | null;
   loading: boolean;
+  refreshProfile: () => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType>({
@@ -21,6 +22,7 @@ const UserContext = createContext<UserContextType>({
   profile: null,
   role: null,
   loading: true,
+  refreshProfile: async () => {},
 });
 
 export function UserProvider({
@@ -33,88 +35,92 @@ export function UserProvider({
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = useCallback(async (currentUser: any) => {
+    if (!currentUser?.id) {
+      setProfile(null);
+      setRole(null);
+      return;
+    }
+
+    console.log("Cargando profile:", currentUser.email);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error obteniendo profile:", error);
+      return;
+    }
+
+    setProfile(data);
+    setRole(data?.role ?? null);
+  }, []);
+
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user);
+    }
+  };
+
+  // ==========================
+  // Cargar sesión inicial
+  // ==========================
+
   useEffect(() => {
-    let mounted = true;
+    const loadSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    const loadUser = async (sessionUser?: any) => {
-      if (!mounted) return;
+      setUser(session?.user ?? null);
 
-      try {
-        setLoading(true);
-
-        if (!sessionUser) {
-          setUser(null);
-          setProfile(null);
-          setRole(null);
-          return;
-        }
-
-        setUser(sessionUser);
-
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", sessionUser.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error cargando profile:", error);
-        }
-
-        if (!mounted) return;
-
-        setProfile(data ?? null);
-        setRole(data?.role ?? null);
-      } catch (err) {
-        console.error("UserContext:", err);
-
-        if (!mounted) return;
-
-        setProfile(null);
-        setRole(null);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
+      setLoading(false);
     };
 
-    const init = async () => {
-      try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
+    loadSession();
+  }, []);
 
-        if (error) {
-          console.error("Error obteniendo sesión:", error);
-        }
+  // ==========================
+  // Escuchar cambios de auth
+  // ==========================
 
-        await loadUser(session?.user ?? null);
-      } catch (err) {
-        console.error("Error inicializando sesión:", err);
-
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    init();
-
+  useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("AUTH:", event);
 
-      loadUser(session?.user ?? null);
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+        setProfile(null);
+        setRole(null);
+        return;
+      }
+
+      setUser(session?.user ?? null);
     });
 
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
+
+  // ==========================
+  // Cuando cambia el usuario
+  // ==========================
+
+  useEffect(() => {
+    if (!user) {
+      setProfile(null);
+      setRole(null);
+      return;
+    }
+
+    fetchProfile(user);
+  }, [user, fetchProfile]);
 
   return (
     <UserContext.Provider
@@ -123,6 +129,7 @@ export function UserProvider({
         profile,
         role,
         loading,
+        refreshProfile,
       }}
     >
       {children}
@@ -130,6 +137,4 @@ export function UserProvider({
   );
 }
 
-export function useUser() {
-  return useContext(UserContext);
-}
+export const useUser = () => useContext(UserContext);

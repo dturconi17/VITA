@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
-import { useUser } from "@/context/UserContext"
+import { useUser } from "@/app/context/UserContext"
 import { container, card, title, form, input, button } from "@/styles/ui"
 
 export default function CompletarPerfil() {

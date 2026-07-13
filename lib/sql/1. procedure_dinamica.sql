@@ -43,3 +43,9 @@ GROUP BY
 EXEC sp_executesql @SQL;
 
 drop table sales.crm_aux_dinamica
+
+select * from
+sales.crm_aux_dinamica
+
+select * from
+sales.crm_dinamica

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@/context/UserContext";
+import { useUser } from "@/app/context/UserContext";
 
 const menuSections = [
   {
@@ -53,7 +53,7 @@ const menuSections = [
     title: "⚙️ Administración",
     key: "admin",
     roles: ["admin"],
-    items: [{ href: "/users", label: "Usuarios" }],
+    items: [{ href: "/users", label: "1. Usuarios" }],
   },
 ];
 

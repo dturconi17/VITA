@@ -2,18 +2,49 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useUser } from "@/context/UserContext";
+import { useUser } from "@/app/context/UserContext";
 import { useRouter } from "next/navigation";
 
 const roles = ["admin", "gerente", "supervisor", "vendedor"];
 
+type Profile = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: string | null;
+  supervisor_id: string | null;
+  sexo: string | null;
+  fecha_nacimiento: string | null;
+};
+
 export default function UsersPage() {
-  const { role, loading, user } = useUser();
+  const { user, role, loading } = useUser();
   const router = useRouter();
 
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [supervisores, setSupervisores] = useState<Profile[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [supervisores, setSupervisores] = useState<any[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const PAGE_SIZE = 5;
+
+  const filteredUsers = users.filter((u) => {
+    const text = search.toLowerCase();
+
+    return (
+      (u.full_name ?? "").toLowerCase().includes(text) ||
+      u.email.toLowerCase().includes(text)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
+
+  const paginatedUsers = filteredUsers.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   const [form, setForm] = useState({
     email: "",
@@ -28,7 +59,7 @@ export default function UsersPage() {
     if (!loading && role !== "admin") {
       router.push("/no-access");
     }
-  }, [role, loading]);
+  }, [loading, role, router]);
 
   const fetchUsers = async () => {
     const { data, error } = await supabase
@@ -37,6 +68,9 @@ export default function UsersPage() {
         "id, email, full_name, role, supervisor_id, sexo, fecha_nacimiento"
       )
       .order("full_name");
+
+    console.log("DATA:", data)
+    console.log("ERROR:", error)
 
     if (error) {
       console.error("Error trayendo usuarios:", error);
@@ -48,8 +82,20 @@ export default function UsersPage() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    const loadUsers = async () => {
+      await fetchUsers();
+    };
+    const newTotalPages = Math.ceil((filteredUsers.length - 1) / PAGE_SIZE);
+
+    if (page > newTotalPages && page > 1) {
+      setPage(page - 1);
+    }
+    loadUsers();
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   const updateRole = async (userId: string, newRole: string) => {
     setSavingId(userId);
@@ -124,14 +170,67 @@ export default function UsersPage() {
 
       alert("Usuario creado correctamente");
 
-    } catch (err: any) {
-      console.error("ERROR FRONT:", err);
-      alert(err.message);
+    } catch (err: unknown) {
+      console.error(err);
+
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert("Ocurrió un error inesperado");
+      }
     } finally {
       setCreating(false);
     }
   };
 
+  const deleteUser = async (selectedUser: Profile) => {
+
+    if (selectedUser.id === user?.id) {
+      alert("No podés eliminar tu propio usuario.");
+      return;
+    }
+
+    const ok = confirm(
+      `¿Está seguro que desea eliminar a ${selectedUser.full_name || selectedUser.email}?`
+    );
+
+    if (!ok) return;
+
+    setDeletingId(selectedUser.id);
+
+    try {
+      const res = await fetch("/api/admin/delete-user", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: selectedUser.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo eliminar el usuario");
+      }
+
+      await fetchUsers();
+
+      alert("Usuario eliminado correctamente");
+
+    } catch (err) {
+      console.error(err);
+
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert("Error eliminando usuario");
+      }
+    } finally {
+      setDeletingId(null);
+    };
+  }
   if (loading || role !== "admin") {
     return <p style={{ padding: 20 }}>Cargando...</p>;
   }
@@ -197,6 +296,18 @@ export default function UsersPage() {
         </button>
       </div>
 
+      <div style={{ marginBottom: 15 }}>
+        <input
+          placeholder="Buscar por nombre o email..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            ...input,
+            width: "350px",
+          }}
+        />
+      </div>
+
       <div style={card}>
         <table style={table}>
           <thead>
@@ -207,11 +318,12 @@ export default function UsersPage() {
               <th style={th}>Email</th>
               <th style={th}>Rol</th>
               <th style={th}>Supervisor</th>
+              <th style={th}>Acciones</th>
             </tr>
           </thead>
 
           <tbody>
-            {users.map((u, i) => (
+            {paginatedUsers.map((u, i) => (
               <tr key={u.id} style={i % 2 === 0 ? row : rowAlt}>
                 <td style={td}>{u.full_name || "-"}</td>
                 <td style={td}>{u.sexo || "-"}</td>
@@ -255,12 +367,59 @@ export default function UsersPage() {
                     "-"
                   )}
                 </td>
+                <td style={td}>
+                  <button
+                    onClick={() => deleteUser(u)}
+                    disabled={deletingId === u.id}
+                    style={{
+                      background: "#dc2626",
+                      color: "white",
+                      border: "none",
+                      borderRadius: 6,
+                      padding: "8px 12px",
+                      cursor: deletingId === u.id ? "not-allowed" : "pointer",
+                      opacity: deletingId === u.id ? 0.6 : 1,
+                    }}
+                  >
+                    {deletingId === u.id ? "Eliminando..." : "Eliminar"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: 20,
+          alignItems: "center",
+        }}
+      >
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+          style={button}
+        >
+          Anterior
+        </button>
+
+        <span>
+          Página {page} de {totalPages || 1}
+        </span>
+
+        <button
+          disabled={page === totalPages || totalPages === 0}
+          onClick={() => setPage(page + 1)}
+          style={button}
+        >
+          Siguiente
+        </button>
+      </div>
     </div>
+
+
   );
 }
 

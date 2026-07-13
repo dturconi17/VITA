@@ -1,18 +1,17 @@
-import "./globals.css"
-import { UserProvider } from "@/context/UserContext"
+import "./globals.css";
+import { UserProvider } from "@/app/context/UserContext";
+//import Script from "next/script";
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="es">
       <body>
-        <UserProvider>
-          {children}
-        </UserProvider>
+        <UserProvider>{children}</UserProvider>
       </body>
     </html>
-  )
+  );
 }

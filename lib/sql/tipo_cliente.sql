@@ -65,7 +65,7 @@ DECLARE @SQL NVARCHAR(MAX);
 
     FROM Periodos
 
-    WHERE periodo < '2026-06-01'
+    WHERE periodo < '2026-07-01'
 )
 
 
@@ -217,3 +217,5 @@ EXEC sp_executesql @SQL;
 
 
 select * FROM sales.crm_dinamica_segmentada
+
+select * from sales.v_venta_total
