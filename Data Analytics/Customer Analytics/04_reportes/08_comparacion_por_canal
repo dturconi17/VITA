@@ -1,0 +1,264 @@
+/*==============================================================
+ANÁLISIS 2
+COMPARACIÓN ÉTICA VS NO ÉTICA POR CANAL
+==============================================================*/
+
+WITH Resumen AS
+(
+    SELECT
+        UPPER
+        (
+            LTRIM
+            (
+                RTRIM
+                (
+                    ISNULL(canal, 'SIN CANAL')
+                )
+            )
+        ) AS canal_normalizado,
+
+        cliente_etica,
+
+        COUNT(*) AS clientes,
+
+        AVG
+        (
+            CAST(antiguedad_meses AS DECIMAL(19,4))
+        ) AS antiguedad,
+
+        AVG
+        (
+            CAST(venta_no_etica_historica AS DECIMAL(19,4))
+        ) AS venta_no_etica,
+
+        AVG
+        (
+            CAST(venta_mensual_promedio_historica AS DECIMAL(19,4))
+        ) AS venta_mensual,
+
+        AVG
+        (
+            CAST(frecuencia_historica AS DECIMAL(19,4))
+        ) AS frecuencia,
+
+        AVG
+        (
+            CAST(productos_no_etica_historicos AS DECIMAL(19,4))
+        ) AS productos_no_etica,
+
+        AVG
+        (
+            CAST(meses_activos_historicos AS DECIMAL(19,4))
+        ) AS meses_activos,
+
+        AVG
+        (
+            CAST(lineas_historicas AS DECIMAL(19,4))
+        ) AS lineas
+
+    FROM sales.ca_cliente
+
+    WHERE facturas_historicas > 0
+
+    GROUP BY
+        UPPER
+        (
+            LTRIM
+            (
+                RTRIM
+                (
+                    ISNULL(canal, 'SIN CANAL')
+                )
+            )
+        ),
+        cliente_etica
+),
+Pivotado AS
+(
+    SELECT
+        canal_normalizado,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN clientes
+            END
+        ) AS clientes_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN clientes
+            END
+        ) AS clientes_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN antiguedad
+            END
+        ) AS antiguedad_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN antiguedad
+            END
+        ) AS antiguedad_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN venta_no_etica
+            END
+        ) AS venta_no_etica_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN venta_no_etica
+            END
+        ) AS venta_no_etica_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN venta_mensual
+            END
+        ) AS venta_mensual_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN venta_mensual
+            END
+        ) AS venta_mensual_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN frecuencia
+            END
+        ) AS frecuencia_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN frecuencia
+            END
+        ) AS frecuencia_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN productos_no_etica
+            END
+        ) AS productos_no_etica_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN productos_no_etica
+            END
+        ) AS productos_no_etica_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN meses_activos
+            END
+        ) AS meses_activos_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN meses_activos
+            END
+        ) AS meses_activos_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN lineas
+            END
+        ) AS lineas_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN lineas
+            END
+        ) AS lineas_no_etica
+
+    FROM Resumen
+
+    GROUP BY
+        canal_normalizado
+)
+
+SELECT
+    canal_normalizado AS canal,
+    clientes_etica,
+    clientes_no_etica,
+
+    CAST(antiguedad_etica AS DECIMAL(19,2))
+        AS antiguedad_etica,
+
+    CAST(antiguedad_no_etica AS DECIMAL(19,2))
+        AS antiguedad_no_etica,
+
+    CAST(venta_no_etica_etica AS DECIMAL(19,4))
+        AS venta_no_etica_etica,
+
+    CAST(venta_no_etica_no_etica AS DECIMAL(19,4))
+        AS venta_no_etica_no_etica,
+
+    CAST
+    (
+        venta_no_etica_etica
+        / NULLIF(venta_no_etica_no_etica, 0)
+        AS DECIMAL(19,4)
+    ) AS irv_venta_no_etica,
+
+    CAST
+    (
+        venta_mensual_etica
+        / NULLIF(venta_mensual_no_etica, 0)
+        AS DECIMAL(19,4)
+    ) AS irv_venta_mensual,
+
+    CAST
+    (
+        frecuencia_etica
+        / NULLIF(frecuencia_no_etica, 0)
+        AS DECIMAL(19,4)
+    ) AS irv_frecuencia,
+
+    CAST
+    (
+        productos_no_etica_etica
+        / NULLIF(productos_no_etica_no_etica, 0)
+        AS DECIMAL(19,4)
+    ) AS irv_productos_no_etica,
+
+    CAST
+    (
+        meses_activos_etica
+        / NULLIF(meses_activos_no_etica, 0)
+        AS DECIMAL(19,4)
+    ) AS irv_meses_activos,
+
+    CAST
+    (
+        lineas_etica
+        / NULLIF(lineas_no_etica, 0)
+        AS DECIMAL(19,4)
+    ) AS irv_lineas
+
+FROM Pivotado
+
+WHERE clientes_etica >= 20
+  AND clientes_no_etica >= 20
+
+ORDER BY
+    irv_productos_no_etica DESC;

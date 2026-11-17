@@ -1,0 +1,102 @@
+/*==============================================================
+ANÁLISIS ADICIONAL
+TIEMPO HASTA LA PRIMERA COMPRA ÉTICA
+==============================================================*/
+
+WITH Base AS
+(
+    SELECT
+        codigo_cliente,
+        meses_hasta_etica,
+        antiguedad_meses,
+        meses_activos_historicos,
+        venta_no_etica_historica,
+        venta_mensual_promedio_historica,
+        frecuencia_historica,
+        productos_no_etica_historicos,
+        lineas_historicas,
+
+        CASE
+            WHEN meses_hasta_etica = 0
+                THEN '00 - MISMO MES'
+
+            WHEN meses_hasta_etica BETWEEN 1 AND 3
+                THEN '01 - ENTRE 1 Y 3 MESES'
+
+            WHEN meses_hasta_etica BETWEEN 4 AND 6
+                THEN '02 - ENTRE 4 Y 6 MESES'
+
+            WHEN meses_hasta_etica BETWEEN 7 AND 12
+                THEN '03 - ENTRE 7 Y 12 MESES'
+
+            WHEN meses_hasta_etica BETWEEN 13 AND 24
+                THEN '04 - ENTRE 13 Y 24 MESES'
+
+            ELSE '05 - MAS DE 24 MESES'
+        END AS tramo_adopcion_etica
+
+    FROM sales.ca_cliente
+
+    WHERE cliente_etica = 1
+      AND facturas_historicas > 0
+      AND meses_hasta_etica IS NOT NULL
+)
+
+SELECT
+    tramo_adopcion_etica,
+
+    COUNT(*) AS clientes,
+
+    MIN(meses_hasta_etica)
+        AS meses_minimos,
+
+    MAX(meses_hasta_etica)
+        AS meses_maximos,
+
+    AVG
+    (
+        CAST(meses_hasta_etica AS DECIMAL(19,4))
+    ) AS meses_hasta_etica_promedio,
+
+    AVG
+    (
+        CAST(antiguedad_meses AS DECIMAL(19,4))
+    ) AS antiguedad_promedio,
+
+    AVG
+    (
+        CAST(meses_activos_historicos AS DECIMAL(19,4))
+    ) AS meses_activos_promedio,
+
+    AVG
+    (
+        CAST(venta_no_etica_historica AS DECIMAL(19,4))
+    ) AS venta_no_etica_promedio,
+
+    AVG
+    (
+        CAST(venta_mensual_promedio_historica AS DECIMAL(19,4))
+    ) AS venta_mensual_promedio,
+
+    AVG
+    (
+        CAST(frecuencia_historica AS DECIMAL(19,4))
+    ) AS frecuencia_promedio,
+
+    AVG
+    (
+        CAST(productos_no_etica_historicos AS DECIMAL(19,4))
+    ) AS productos_no_etica_promedio,
+
+    AVG
+    (
+        CAST(lineas_historicas AS DECIMAL(19,4))
+    ) AS lineas_promedio
+
+FROM Base
+
+GROUP BY
+    tramo_adopcion_etica
+
+ORDER BY
+    tramo_adopcion_etica;

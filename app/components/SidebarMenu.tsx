@@ -18,6 +18,7 @@ const menuSections = [
       { href: "/ventas-vendedor", label: "3. Ventas por Vendedor" },
       { href: "/ticket-promedio", label: "4. Reporte de Ventas Promedio" },
       { href: "/reporte-retencion", label: "5. Dinamica de Clientes" },
+      { href: "/evolucion-clientes", label: "6. Evolucion Clientes por mes" },
 
     ],
   },

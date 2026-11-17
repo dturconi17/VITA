@@ -1,0 +1,97 @@
+/*==============================================================
+H2.1.B - ÍNDICE RELATIVO DE VALOR HISTÓRICO
+==============================================================*/
+
+WITH Resumen AS
+(
+    SELECT
+        cliente_etica,
+
+        AVG(venta_historica)
+            AS venta_promedio,
+
+        AVG(venta_mensual_promedio_historica)
+            AS venta_mensual_promedio,
+
+        AVG(ticket_promedio_historico)
+            AS ticket_promedio,
+
+        AVG(frecuencia_historica)
+            AS frecuencia_promedio,
+
+        AVG(CAST(productos_historicos AS DECIMAL(18,4)))
+            AS productos_promedio,
+
+        AVG(CAST(meses_activos_historicos AS DECIMAL(18,4)))
+            AS meses_activos_promedio
+
+    FROM sales.ca_cliente
+
+    GROUP BY cliente_etica
+),
+
+Etica AS
+(
+    SELECT *
+    FROM Resumen
+    WHERE cliente_etica = 1
+),
+
+NoEtica AS
+(
+    SELECT *
+    FROM Resumen
+    WHERE cliente_etica = 0
+)
+
+SELECT
+    CAST
+    (
+        e.venta_promedio
+        / NULLIF(n.venta_promedio, 0)
+
+        AS DECIMAL(18,2)
+    ) AS irv_venta_historica,
+
+    CAST
+    (
+        e.venta_mensual_promedio
+        / NULLIF(n.venta_mensual_promedio, 0)
+
+        AS DECIMAL(18,2)
+    ) AS irv_venta_mensual,
+
+    CAST
+    (
+        e.ticket_promedio
+        / NULLIF(n.ticket_promedio, 0)
+
+        AS DECIMAL(18,2)
+    ) AS irv_ticket,
+
+    CAST
+    (
+        e.frecuencia_promedio
+        / NULLIF(n.frecuencia_promedio, 0)
+
+        AS DECIMAL(18,2)
+    ) AS irv_frecuencia,
+
+    CAST
+    (
+        e.productos_promedio
+        / NULLIF(n.productos_promedio, 0)
+
+        AS DECIMAL(18,2)
+    ) AS irv_productos,
+
+    CAST
+    (
+        e.meses_activos_promedio
+        / NULLIF(n.meses_activos_promedio, 0)
+
+        AS DECIMAL(18,2)
+    ) AS irv_meses_activos
+
+FROM Etica e
+CROSS JOIN NoEtica n;

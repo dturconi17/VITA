@@ -1,0 +1,67 @@
+/*==============================================================
+H2.1.E - CONCENTRACIÓN DE VENTA POR GRUPO
+
+Objetivo:
+Verificar si la diferencia promedio se explica por pocos clientes
+de facturación extraordinaria.
+==============================================================*/
+
+WITH Base AS
+(
+    SELECT
+        cliente_etica,
+        codigo_cliente,
+        venta_12m,
+
+        NTILE(10) OVER
+        (
+            PARTITION BY cliente_etica
+            ORDER BY venta_12m DESC
+        ) AS decil_venta
+
+    FROM sales.ca_cliente
+
+    WHERE cartera_actual = 1
+),
+
+Resumen AS
+(
+    SELECT
+        cliente_etica,
+
+        SUM(venta_12m) AS venta_total,
+
+        SUM
+        (
+            CASE
+                WHEN decil_venta = 1
+                THEN venta_12m
+                ELSE 0
+            END
+        ) AS venta_top_10_pct
+
+    FROM Base
+
+    GROUP BY cliente_etica
+)
+
+SELECT
+    CASE
+        WHEN cliente_etica = 1
+        THEN 'CARTERA ETICA'
+        ELSE 'CARTERA NO ETICA'
+    END AS grupo_cliente,
+
+    venta_total,
+
+    venta_top_10_pct,
+
+    CAST
+    (
+        venta_top_10_pct
+        / NULLIF(venta_total, 0)
+
+        AS DECIMAL(10,4)
+    ) AS participacion_top_10_pct
+
+FROM Resumen;

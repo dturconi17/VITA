@@ -1,0 +1,337 @@
+/*==============================================================
+ANÁLISIS 3
+DECILES SEGÚN VENTA NO ÉTICA HISTÓRICA
+==============================================================*/
+
+WITH Base AS
+(
+    SELECT
+        codigo_cliente,
+        cliente_etica,
+        venta_no_etica_historica,
+        frecuencia_historica,
+        productos_no_etica_historicos,
+        meses_activos_historicos,
+        antiguedad_meses,
+        lineas_historicas,
+
+        NTILE(10) OVER
+        (
+            ORDER BY venta_no_etica_historica
+        ) AS decil_venta_no_etica
+
+    FROM sales.ca_cliente
+
+    WHERE facturas_historicas > 0
+),
+Resumen AS
+(
+    SELECT
+        decil_venta_no_etica,
+        cliente_etica,
+
+        COUNT(*) AS clientes,
+
+        MIN(venta_no_etica_historica)
+            AS venta_minima,
+
+        MAX(venta_no_etica_historica)
+            AS venta_maxima,
+
+        AVG
+        (
+            CAST(venta_no_etica_historica AS DECIMAL(19,4))
+        ) AS venta_promedio,
+
+        AVG
+        (
+            CAST(frecuencia_historica AS DECIMAL(19,4))
+        ) AS frecuencia_promedio,
+
+        AVG
+        (
+            CAST(productos_no_etica_historicos AS DECIMAL(19,4))
+        ) AS productos_no_etica_promedio,
+
+        AVG
+        (
+            CAST(meses_activos_historicos AS DECIMAL(19,4))
+        ) AS meses_activos_promedio,
+
+        AVG
+        (
+            CAST(antiguedad_meses AS DECIMAL(19,4))
+        ) AS antiguedad_promedio,
+
+        AVG
+        (
+            CAST(lineas_historicas AS DECIMAL(19,4))
+        ) AS lineas_promedio
+
+    FROM Base
+
+    GROUP BY
+        decil_venta_no_etica,
+        cliente_etica
+)
+
+SELECT
+    decil_venta_no_etica,
+
+    CASE
+        WHEN cliente_etica = 1
+            THEN 'CLIENTE ETICA'
+        ELSE 'CLIENTE NO ETICA'
+    END AS grupo_cliente,
+
+    clientes,
+
+    CAST(venta_minima AS DECIMAL(19,4))
+        AS venta_minima,
+
+    CAST(venta_maxima AS DECIMAL(19,4))
+        AS venta_maxima,
+
+    CAST(venta_promedio AS DECIMAL(19,4))
+        AS venta_promedio,
+
+    CAST(frecuencia_promedio AS DECIMAL(19,4))
+        AS frecuencia_promedio,
+
+    CAST(productos_no_etica_promedio AS DECIMAL(19,2))
+        AS productos_no_etica_promedio,
+
+    CAST(meses_activos_promedio AS DECIMAL(19,2))
+        AS meses_activos_promedio,
+
+    CAST(antiguedad_promedio AS DECIMAL(19,2))
+        AS antiguedad_promedio,
+
+    CAST(lineas_promedio AS DECIMAL(19,2))
+        AS lineas_promedio
+
+FROM Resumen
+
+ORDER BY
+    decil_venta_no_etica,
+    cliente_etica DESC;
+
+/*==============================================================
+COMPARACIÓN ÉTICA VS NO ÉTICA DENTRO DE CADA DECIL
+==============================================================*/
+
+WITH Base AS
+(
+    SELECT
+        codigo_cliente,
+        cliente_etica,
+        venta_no_etica_historica,
+        frecuencia_historica,
+        productos_no_etica_historicos,
+        meses_activos_historicos,
+        antiguedad_meses,
+        lineas_historicas,
+
+        NTILE(10) OVER
+        (
+            ORDER BY venta_no_etica_historica
+        ) AS decil
+
+    FROM sales.ca_cliente
+
+    WHERE facturas_historicas > 0
+),
+Resumen AS
+(
+    SELECT
+        decil,
+        cliente_etica,
+
+        COUNT(*) AS clientes,
+
+        AVG
+        (
+            CAST(frecuencia_historica AS DECIMAL(19,4))
+        ) AS frecuencia,
+
+        AVG
+        (
+            CAST(productos_no_etica_historicos AS DECIMAL(19,4))
+        ) AS productos_no_etica,
+
+        AVG
+        (
+            CAST(meses_activos_historicos AS DECIMAL(19,4))
+        ) AS meses_activos,
+
+        AVG
+        (
+            CAST(antiguedad_meses AS DECIMAL(19,4))
+        ) AS antiguedad,
+
+        AVG
+        (
+            CAST(lineas_historicas AS DECIMAL(19,4))
+        ) AS lineas
+
+    FROM Base
+
+    GROUP BY
+        decil,
+        cliente_etica
+),
+Pivotado AS
+(
+    SELECT
+        decil,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN clientes
+            END
+        ) AS clientes_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN clientes
+            END
+        ) AS clientes_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN frecuencia
+            END
+        ) AS frecuencia_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN frecuencia
+            END
+        ) AS frecuencia_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN productos_no_etica
+            END
+        ) AS productos_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN productos_no_etica
+            END
+        ) AS productos_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN meses_activos
+            END
+        ) AS meses_activos_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN meses_activos
+            END
+        ) AS meses_activos_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN antiguedad
+            END
+        ) AS antiguedad_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN antiguedad
+            END
+        ) AS antiguedad_no_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 1
+                THEN lineas
+            END
+        ) AS lineas_etica,
+
+        MAX
+        (
+            CASE WHEN cliente_etica = 0
+                THEN lineas
+            END
+        ) AS lineas_no_etica
+
+    FROM Resumen
+
+    GROUP BY
+        decil
+)
+
+SELECT
+    decil,
+    clientes_etica,
+    clientes_no_etica,
+
+    CAST(frecuencia_etica AS DECIMAL(19,4))
+        AS frecuencia_etica,
+
+    CAST(frecuencia_no_etica AS DECIMAL(19,4))
+        AS frecuencia_no_etica,
+
+    CAST
+    (
+        frecuencia_etica - frecuencia_no_etica
+        AS DECIMAL(19,4)
+    ) AS diferencia_frecuencia,
+
+    CAST(productos_etica AS DECIMAL(19,2))
+        AS productos_no_etica_cliente_etica,
+
+    CAST(productos_no_etica AS DECIMAL(19,2))
+        AS productos_no_etica_cliente_no_etica,
+
+    CAST
+    (
+        productos_etica - productos_no_etica
+        AS DECIMAL(19,2)
+    ) AS diferencia_productos,
+
+    CAST(meses_activos_etica AS DECIMAL(19,2))
+        AS meses_activos_etica,
+
+    CAST(meses_activos_no_etica AS DECIMAL(19,2))
+        AS meses_activos_no_etica,
+
+    CAST
+    (
+        meses_activos_etica - meses_activos_no_etica
+        AS DECIMAL(19,2)
+    ) AS diferencia_meses_activos,
+
+    CAST(antiguedad_etica AS DECIMAL(19,2))
+        AS antiguedad_etica,
+
+    CAST(antiguedad_no_etica AS DECIMAL(19,2))
+        AS antiguedad_no_etica,
+
+    CAST(lineas_etica AS DECIMAL(19,2))
+        AS lineas_etica,
+
+    CAST(lineas_no_etica AS DECIMAL(19,2))
+        AS lineas_no_etica
+
+FROM Pivotado
+
+WHERE clientes_etica >= 20
+  AND clientes_no_etica >= 20
+
+ORDER BY
+    decil;

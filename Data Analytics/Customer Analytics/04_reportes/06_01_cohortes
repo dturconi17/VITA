@@ -1,0 +1,87 @@
+/*==============================================================
+H2.2.1
+Distribución de cohortes
+==============================================================*/
+
+SELECT
+
+    periodo_alta,
+
+    COUNT(*) clientes,
+
+    SUM(CASE WHEN cliente_etica=1 THEN 1 ELSE 0 END)
+        clientes_etica,
+
+    SUM(CASE WHEN cliente_etica=0 THEN 1 ELSE 0 END)
+        clientes_no_etica,
+
+    CAST
+    (
+        100.0 *
+        SUM(CASE WHEN cliente_etica=1 THEN 1 ELSE 0 END)
+        /
+        COUNT(*)
+
+        AS DECIMAL(10,2)
+    ) porcentaje_etica
+
+FROM sales.ca_cliente
+
+GROUP BY periodo_alta
+
+ORDER BY periodo_alta;
+
+
+
+
+
+
+
+
+/*==============================================================
+H2.2.2
+
+Venta promedio por cohorte
+
+==============================================================*/
+
+SELECT
+    periodo_alta,
+    CASE
+        WHEN cliente_etica=1
+        THEN 'ETICA'
+        ELSE 'NO ETICA'
+    END grupo,
+    COUNT(*) clientes,
+    CAST
+    (
+        AVG(venta_historica)
+        AS DECIMAL(18,2)
+    ) venta_historica,
+    CAST
+    (
+        AVG(venta_mensual_promedio_historica)
+        AS DECIMAL(18,2)
+    ) venta_mensual,
+    CAST
+    (
+        AVG(ticket_promedio_historico)
+        AS DECIMAL(18,2)
+    ) ticket,
+    CAST
+    (
+        AVG(frecuencia_historica)
+        AS DECIMAL(18,2)
+    ) frecuencia,
+    CAST
+    (
+        AVG(productos_historicos)
+        AS DECIMAL(18,2)
+    ) productos
+FROM sales.ca_cliente
+GROUP BY
+periodo_alta,
+cliente_etica
+ORDER BY
+periodo_alta,
+cliente_etica DESC;

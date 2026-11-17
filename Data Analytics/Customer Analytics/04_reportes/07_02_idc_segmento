@@ -1,0 +1,50 @@
+SELECT
+    segmento_idc,
+
+    COUNT(*) AS clientes,
+
+    SUM
+    (
+        CASE
+            WHEN cliente_etica = 1 THEN 1
+            ELSE 0
+        END
+    ) AS clientes_etica,
+
+    SUM
+    (
+        CASE
+            WHEN cliente_etica = 0 THEN 1
+            ELSE 0
+        END
+    ) AS clientes_no_etica,
+
+    CAST
+    (
+        100.0
+        *
+        SUM
+        (
+            CASE
+                WHEN cliente_etica = 1 THEN 1
+                ELSE 0
+            END
+        )
+        /
+        NULLIF(COUNT(*), 0)
+
+        AS DECIMAL(10,2)
+    ) AS porcentaje_etica
+
+FROM sales.ca_cliente_idc
+
+GROUP BY segmento_idc
+
+ORDER BY
+    CASE segmento_idc
+        WHEN 'Desarrollo muy alto' THEN 1
+        WHEN 'Desarrollo alto' THEN 2
+        WHEN 'Desarrollo medio' THEN 3
+        WHEN 'Desarrollo bajo' THEN 4
+        ELSE 5
+    END;

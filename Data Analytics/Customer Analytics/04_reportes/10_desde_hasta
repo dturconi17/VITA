@@ -1,0 +1,70 @@
+SELECT
+    codigo_cliente,
+    CAST(cliente_etica AS INT) AS cliente_etica,
+
+    canal,
+    cohorte_año,
+    antiguedad_meses,
+
+    fecha_primer_etica,
+
+    venta_historica,
+    LOG10(1 + venta_historica) AS log_venta_historica,
+
+    productos_no_etica_historicos,
+    lineas_historicas,
+    venta_mensual_promedio_historica
+
+FROM sales.ca_cliente
+WHERE facturas_historicas > 0
+  AND codigo_cliente IS NOT NULL;
+
+  SELECT
+    codigo_cliente,
+
+    CAST(cliente_etica AS INT) AS cliente_etica,
+
+    canal,
+    cohorte_año,
+    antiguedad_meses,
+
+    fecha_primer_etica,
+
+    venta_historica,
+    LOG10(1 + venta_historica) AS log_venta_historica,
+
+    productos_no_etica_historicos,
+    lineas_historicas,
+    frecuencia_historica,
+    meses_activos_historicos,
+    venta_mensual_promedio_historica
+
+FROM sales.ca_cliente
+
+WHERE facturas_historicas > 0
+  AND codigo_cliente IS NOT NULL
+  AND antiguedad_meses IS NOT NULL
+  AND cohorte_año IS NOT NULL;
+
+
+
+  --Despues del ipynb
+
+  select *
+  FROM sales.v_venta_total
+WHERE estado_factura='V'
+and nombre_vendedor not in ('ANA MARIA AGUILAR SUAREZ')
+and fecha_factura < '2026-04-01'
+
+
+SELECT
+    COLUMN_NAME,
+    DATA_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'sales'
+  AND TABLE_NAME = 'v_ventas_total'
+ORDER BY ORDINAL_POSITION;
+
+SELECT DISTINCT linea
+FROM sales.v_ventas_total
+ORDER BY linea;
