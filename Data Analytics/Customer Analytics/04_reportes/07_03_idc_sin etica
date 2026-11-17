@@ -1,0 +1,94 @@
+/*==============================================================
+VALIDACIÓN DE ROBUSTEZ
+
+Compara el IDC original con un IDC que utiliza únicamente
+productos de otras líneas.
+==============================================================*/
+
+WITH Base AS
+(
+    SELECT
+        codigo_cliente,
+        cliente_etica,
+
+        ISNULL(venta_mensual_promedio_historica, 0)
+            AS venta_mensual_historica,
+
+        ISNULL(frecuencia_historica, 0)
+            AS frecuencia_historica,
+
+        ISNULL(productos_no_etica_historicos, 0)
+            AS productos_no_etica,
+
+        ISNULL(meses_activos_historicos, 0)
+            AS meses_activos_historicos
+
+    FROM sales.ca_cliente
+),
+
+Percentiles AS
+(
+    SELECT
+        *,
+
+        PERCENT_RANK() OVER
+        (
+            ORDER BY venta_mensual_historica
+        ) AS percentil_venta,
+
+        PERCENT_RANK() OVER
+        (
+            ORDER BY frecuencia_historica
+        ) AS percentil_frecuencia,
+
+        PERCENT_RANK() OVER
+        (
+            ORDER BY productos_no_etica
+        ) AS percentil_productos_no_etica,
+
+        PERCENT_RANK() OVER
+        (
+            ORDER BY meses_activos_historicos
+        ) AS percentil_meses_activos
+
+    FROM Base
+),
+
+Indice AS
+(
+    SELECT
+        codigo_cliente,
+        cliente_etica,
+
+        CAST
+        (
+              percentil_productos_no_etica * 100 * 0.30
+            + percentil_frecuencia         * 100 * 0.25
+            + percentil_venta              * 100 * 0.25
+            + percentil_meses_activos      * 100 * 0.20
+
+            AS DECIMAL(10,2)
+        ) AS idc_sin_productos_etica
+
+    FROM Percentiles
+)
+
+SELECT
+    CASE
+        WHEN cliente_etica = 1 THEN 'Ética'
+        ELSE 'No Ética'
+    END AS grupo,
+
+    COUNT(*) AS clientes,
+
+    CAST
+    (
+        AVG(idc_sin_productos_etica)
+        AS DECIMAL(10,2)
+    ) AS idc_promedio_sin_productos_etica
+
+FROM Indice
+
+GROUP BY cliente_etica
+
+ORDER BY cliente_etica DESC;

@@ -1,0 +1,107 @@
+/*==============================================================
+H2.1.D - CARTERA ACTUAL TOTAL VS ETICA VS NO ETICA
+==============================================================*/
+
+WITH Cartera AS
+(
+    SELECT *
+    FROM sales.ca_cliente
+    WHERE cartera_actual = 1
+),
+
+Resultados AS
+(
+    SELECT
+        1 AS orden,
+        'CARTERA ACTUAL TOTAL' AS segmento,
+
+        COUNT(*) AS clientes,
+
+        SUM(venta_12m) AS venta_12m,
+
+        AVG(venta_12m) AS venta_promedio_cliente,
+
+        AVG(ticket_promedio_12m) AS ticket_promedio,
+
+        AVG(frecuencia_12m) AS frecuencia,
+
+        AVG(CAST(productos_12m AS DECIMAL(18,4)))
+            AS productos_promedio,
+
+        AVG(CAST(meses_activos_12m AS DECIMAL(18,4)))
+            AS meses_activos_promedio
+
+    FROM Cartera
+
+    UNION ALL
+
+    SELECT
+        2,
+        'CARTERA ETICA',
+
+        COUNT(*),
+
+        SUM(venta_12m),
+
+        AVG(venta_12m),
+
+        AVG(ticket_promedio_12m),
+
+        AVG(frecuencia_12m),
+
+        AVG(CAST(productos_12m AS DECIMAL(18,4))),
+
+        AVG(CAST(meses_activos_12m AS DECIMAL(18,4)))
+
+    FROM Cartera
+    WHERE cliente_etica = 1
+
+    UNION ALL
+
+    SELECT
+        3,
+        'CARTERA NO ETICA',
+
+        COUNT(*),
+
+        SUM(venta_12m),
+
+        AVG(venta_12m),
+
+        AVG(ticket_promedio_12m),
+
+        AVG(frecuencia_12m),
+
+        AVG(CAST(productos_12m AS DECIMAL(18,4))),
+
+        AVG(CAST(meses_activos_12m AS DECIMAL(18,4)))
+
+    FROM Cartera
+    WHERE cliente_etica = 0
+)
+
+SELECT
+    segmento,
+    clientes,
+
+    CAST(venta_12m AS DECIMAL(18,2))
+        AS venta_12m,
+
+    CAST(venta_promedio_cliente AS DECIMAL(18,2))
+        AS venta_promedio_cliente,
+
+    CAST(ticket_promedio AS DECIMAL(18,2))
+        AS ticket_promedio,
+
+    CAST(frecuencia AS DECIMAL(18,2))
+        AS frecuencia,
+
+    CAST(productos_promedio AS DECIMAL(18,2))
+        AS productos_promedio,
+
+    CAST(meses_activos_promedio AS DECIMAL(18,2))
+        AS meses_activos_promedio
+
+FROM Resultados
+
+ORDER BY orden;

@@ -1,0 +1,90 @@
+/*==============================================================
+H2.2.3
+IRV POR COHORTE
+
+Objetivo:
+Comparar el desarrollo relativo de clientes Ética vs No Ética
+dentro de cada cohorte.
+==============================================================*/
+
+WITH Base AS
+(
+    SELECT
+        periodo_alta,
+        cliente_etica,
+        AVG(venta_mensual_promedio_historica) AS venta_mensual,
+        AVG(ticket_promedio_historico) AS ticket,
+        AVG(frecuencia_historica) AS frecuencia,
+        AVG(CAST(productos_historicos AS DECIMAL(18,4)))
+            AS productos
+    FROM sales.ca_cliente
+    GROUP BY
+        periodo_alta,
+        cliente_etica
+),
+
+Etica AS
+(
+    SELECT *
+    FROM Base
+    WHERE cliente_etica = 1
+),
+
+NoEtica AS
+(
+    SELECT *
+    FROM Base
+    WHERE cliente_etica = 0
+)
+
+SELECT
+
+    e.periodo_alta,
+
+    CAST
+    (
+        e.venta_mensual
+        /
+        NULLIF(n.venta_mensual,0)
+
+        AS DECIMAL(10,2)
+
+    ) AS irv_venta,
+
+    CAST
+    (
+        e.ticket
+        /
+        NULLIF(n.ticket,0)
+
+        AS DECIMAL(10,2)
+
+    ) AS irv_ticket,
+
+    CAST
+    (
+        e.frecuencia
+        /
+        NULLIF(n.frecuencia,0)
+
+        AS DECIMAL(10,2)
+
+    ) AS irv_frecuencia,
+
+    CAST
+    (
+        e.productos
+        /
+        NULLIF(n.productos,0)
+
+        AS DECIMAL(10,2)
+
+    ) AS irv_productos
+
+FROM Etica e
+
+INNER JOIN NoEtica n
+
+ON e.periodo_alta = n.periodo_alta
+
+ORDER BY e.periodo_alta;

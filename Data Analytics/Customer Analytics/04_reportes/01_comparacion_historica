@@ -1,0 +1,24 @@
+/*==============================================================
+H2.1.A - VALOR ECONÓMICO HISTÓRICO
+
+Pregunta:
+¿Los clientes que alguna vez compraron Línea Ética generaron
+mayor valor económico durante toda su relación con Vita?
+==============================================================*/
+
+SELECT
+    CASE WHEN cliente_etica = 1 THEN 'CLIENTE ETICA' ELSE 'CLIENTE NO ETICA' END AS grupo_cliente,
+    COUNT(*) AS clientes,
+    SUM(venta_historica) AS venta_historica_total,
+    CAST (AVG(venta_historica) AS DECIMAL(18,2)) AS venta_historica_promedio_cliente,
+    CAST (AVG(venta_mensual_promedio_historica) AS DECIMAL(18,2)) AS venta_mensual_promedio,
+    CAST (AVG(ticket_promedio_historico) AS DECIMAL(18,2)) AS ticket_promedio,
+    CAST (AVG(CAST(facturas_historicas AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS facturas_promedio_cliente,
+    CAST (AVG(frecuencia_historica) AS DECIMAL(18,2)) AS facturas_por_mes_activo,
+    CAST (AVG(CAST(productos_historicos AS DECIMAL(18,2)))AS DECIMAL(18,2)) AS productos_promedio,
+    CAST (AVG(CAST(lineas_historicas AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS lineas_promedio,
+    CAST (AVG(CAST(meses_activos_historicos AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS meses_activos_promedio,
+    CAST (AVG(CAST(antiguedad_meses AS DECIMAL(18,2))) AS DECIMAL(18,2)) AS antiguedad_promedio_meses
+FROM sales.ca_cliente
+GROUP BY cliente_etica
+ORDER BY cliente_etica DESC;
